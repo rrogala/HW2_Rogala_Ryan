@@ -1,0 +1,53 @@
+---
+title: "HW2: Dynamic Figure"
+author: "Ryan Rogala"
+output: html_document
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+  encoding=encoding,
+  output_file=file.path(dirname(input_file), out_dir, 'index.html'))
+  })
+---
+
+## The plot's data source   
+The data was sourced from the 'ISLR' package in R. The data set, *Credit*, within ISLR is a simulated data set for identifying credit worthiness and risk of financial defaults. This data set can be called from the package by using *ISLR::Credit* within Rstudio.
+
+## What does the plot convey?      
+With this figure, I want to prompt the reader to ask their self a question "Why do credit scores tend to be lower for students?". While this plot isn't built to answer this question, it does provide enough information to challenge some common assumptions that the reader might have. For example, an assumption that students tend to carry a higher average credit balance. This leads us to wonder, is it due to their length of credit history, income, or perhaps their type of credit?  
+
+## The plot's functionality and formatting      
+The color, peach vs blue, correspond to the classification of interest, *non-students* and *students*. Each group has their own respective linear trend line, which helps the reader quickly identify that there is some unknown effect related to the *student* classification. The legend of the graph also helps the reader understand which group each color belongs to. The points of the scatter plot are semi-transparent, allowing the reader to see the density of points within *non-student* group. In addition, the size of each point corresponds to the age of each individual. As the graph shows, there is no clear pattern of an age gap between the two groups, which might debunk yet another common assumption about what is driving this difference. Lastly, the reader can observe the values of each point by hovering their mouse over the graph, which allows the reader to investigate each point on their own.   
+
+```{r, warning=FALSE, message=FALSE}
+#Load packages from library.
+library("ISLR")
+library("dplyr")
+library("ggplot2")
+library("plotly")
+library("ggthemes")
+```
+
+```{r}
+#Create new feature as the ratio of debt to income.  
+Credit2 <- Credit %>% mutate(Student = ifelse(Student=="Yes", "Student", "Non-Student"))
+
+#first plot data from "Credit" (in the ISLR package) using ggplot.  
+p1 <- 
+ggplot(data=Credit2) + 
+  geom_point(aes(y=Rating, x=Balance, col=Student, size=Age), show.legend=FALSE, alpha=0.6) +
+  geom_smooth(aes(y=Rating, x=Balance, group=Student, col=Student), formula = y ~ x,
+              method=lm, se = FALSE, linetype=6, show.legend=TRUE)  +
+  theme_tufte() +
+  labs(x="Avg Credit Card Balance ($)", y="Credit Rating")
+
+#Next, use plotly to make the ggplot dynamic.  
+ploty_p1 <- 
+ggplotly(p1, tooltip = c("Balance","Rating","Age")) %>%
+  layout(title="Credit Rating by Average Card Balance \n for Students and Non-Students",
+         legend=list(x=0.95, y=0.1, xanchor="right", yanchor="bottom",
+                     title=list(text='Age of Individual')))
+  
+#print plot.  
+ploty_p1
+```
